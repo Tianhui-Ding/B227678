@@ -14,21 +14,60 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
+
 ```{r cars}
-summary(cars)
+
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+Introduction: 
+Air pollution has increasingly raised public health concerns, particularly in urban areas where dense traffic emissions may contribute to respiratory diseases such as asthma. Recently, Scotland introduced Low Emission Zones (LEZs) across major cities, including Edinburgh, Glasgow, Dundee and Aberdeen, aimed at reducing harmful emissions to protect both environmental quality and public health. While LEZs are primarily environmental interventions, their potential health impact can be evaluated indirectly by examining patterns in respiratory medication use. This study uses prescribing data from Public Health Scotland (https://www.opendata.nhs.scot/dataset/prescriptions-in-the-community) combined with the most up-to-date version of GP practices codes and locations across Scotland (https://www.opendata.nhs.scot/dataset/f23655c3-6e23-4103-a511-a80d998adb90/resource/47557411-7eda-4278-9d6d-d26ed2ceab5a/download/practice_contact_details_20251001_opendata.csv) to investigate whether and/or how the introduction of LEZs has influenced asthma medication prescribing in the cities where LEZs were implemented by comparing prescription volumes 12 months before and after each city’s LEZ activation date, thereby ensuring temporal consistence of analysis. 
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+The timing of LEZ implementation differed by city, with Glasgow commencing in 1st June 2023 and those of Edinburgh, Dundee, and Aberdeen becoming operational in 1st June 2024 (https://lowemissionzones.scot/about). Therefore, prescription data were structured around their respective enforcement dates. Data were partitioned into three distinct periods. 
+1. Glasgow-focused period (June 2022-May 2023): capturing 12 months pre-LEZ for Glasgow. 
+2. Four-cities period (June 2023–May 2024): including all four cities during Glasgow's post-LEZ and the others' pre-LEZ phase.
+3. Three-cities period (June 2024–May 2025): covering Edinburgh, Aberdeen, and Dundee post-LEZ, excluding Glasgow.
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
 ```{r}
-1+1
+
+```
+
+
+```{r}
+
+library(tidyverse)
+library(dplyr)
+library(here)
+
+
+#create combined dataset of glasgow only 
+glasgow202206 <- read.csv(here("data","pitc202206.csv"))
+glasgow202207 <- read.csv(here("data","pitc202207.csv"))
+glasgow202208 <- read.csv(here("data","pitc202208.csv"))
+glasgow202209 <- read.csv(here("data","pitc202209.csv"))
+glasgow202210 <- read.csv(here("data","pitc202210.csv"))
+glasgow202211 <- read.csv(here("data","pitc202211.csv"))
+glasgow202212 <- read.csv(here("data","pitc202212.csv"))
+glasgow_combined_batch1 <- bind_rows(glasgow202206, glasgow202207, glasgow202208, glasgow202209, glasgow202210, glasgow202211, glasgow202212)
+
+glasgow202301 <- read.csv(here("data","pitc202301.csv"))
+glasgow202302 <- read.csv(here("data","pitc202302.csv"))
+glasgow202303 <- read.csv(here("data","pitc202303.csv"))
+glasgow202304 <- read.csv(here("data","pitc202304.csv"))
+glasgow202305 <- read.csv(here("data","pitc202305.csv"))
+glasgow_combined_batch2 <- bind_rows(glasgow202301, glasgow202302, glasgow202303, glasgow202304, glasgow202305)
+
+glasgow_combined <- bind_rows(glasgow_combined_batch1, glasgow_combined_batch2)
+glasgow <- glasgow_combined %>% select(-ClassOfPreparationCode, -DMDCode, -PrescribedType, -GrossIngredientCost)
+write_csv(glasgow, "glasgow.csv")
+
+#create combined dataset of all 4 cities
+
+
+
+
+
 ```
 
