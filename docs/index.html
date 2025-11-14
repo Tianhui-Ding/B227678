@@ -391,21 +391,12 @@ for Glasgow. 2. Four-cities period (June 2023–May 2024): including all
 four cities during Glasgow’s post-LEZ and the others’ pre-LEZ phase. 3.
 Three-cities period (June 2024–May 2025): covering Edinburgh, Aberdeen,
 and Dundee post-LEZ, excluding Glasgow.</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.4     ✔ readr     2.1.5
-## ✔ forcats   1.0.0     ✔ stringr   1.5.2
-## ✔ ggplot2   4.0.0     ✔ tibble    3.3.0
-## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-## ✔ purrr     1.1.0     
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()
-## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(dplyr)
-library(here)</code></pre>
-<pre><code>## here() starts at /Users/tianhuiding/Desktop/Data-Science/B227678</code></pre>
-<pre class="r"><code>#create combined dataset of glasgow only 
+<pre class="r"><code>library(tidyverse)
+library(dplyr)
+library(here)
+
+
+#create combined dataset of glasgow only 
 glasgow202206 &lt;- read.csv(here(&quot;data&quot;,&quot;pitc202206.csv&quot;))
 glasgow202207 &lt;- read.csv(here(&quot;data&quot;,&quot;pitc202207.csv&quot;))
 glasgow202208 &lt;- read.csv(here(&quot;data&quot;,&quot;pitc202208.csv&quot;))
@@ -426,8 +417,7 @@ glasgow_combined &lt;- bind_rows(glasgow_combined_batch1, glasgow_combined_batch
 glasgow &lt;- glasgow_combined %&gt;% select(-ClassOfPreparationCode, -DMDCode, -PrescribedType, -GrossIngredientCost)
 write_csv(glasgow, &quot;glasgow.csv&quot;)
 
-#create combined dataset of all 4 cities
-##batch 1</code></pre>
+#create combined dataset of all 4 cities</code></pre>
 </div>
 
 
