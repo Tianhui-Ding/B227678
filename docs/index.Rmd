@@ -67,16 +67,6 @@ GPPracticeLocation_CombinedPrescriber_SIMD_Population <- GPPracticeLocation_Comb
 
 
 ```{r}
-#total antidepressant prescriptions in that DataZone, regardless of which specific BNFItemCode
-Prescription_byDataZone <- GPPracticeLocation_CombinedPrescriber_SIMD_Population %>%
-  group_by(DataZone) %>%
-  summarise(
-    TotalPrescriptions = sum(BNFItemCode),
-    TotalPatients = n_distinct(GPPractice),
-    PrescriptionRate = (TotalPrescriptions / TotalPopulation) * 1000,
-    .groups = "drop"
-  )
-
 
 TotalPrescriptions_byGP <- GPPracticeLocation_CombinedPrescriber_SIMD_Population %>%
   group_by(GPPractice) %>% ##treat all rows from same GP as one group, every calculation in summarise will happen within each GP separately. 
@@ -86,16 +76,14 @@ TotalPrescriptions_byGP <- GPPracticeLocation_CombinedPrescriber_SIMD_Population
     .groups = "drop"
   )
 
-summary(TotalPrescriptions_byGP2$PrescriptionRate_byGP)
-summary(TotalPrescriptions_byGP2$PracticeListSize)
+summary(TotalPrescriptions_byGP$PrescriptionRate_byGP)
+summary(TotalPrescriptions_byGP$PracticeListSize)
 
 
 ```
 
 
 ```{r}
-
-max(TotalPrescriptions_byGP$PrescriptionRate_byGP, na.rm = TRUE)
 
 library(dplyr)
 TotalPrescriptions_byGP2 <- TotalPrescriptions_byGP %>%
