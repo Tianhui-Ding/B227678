@@ -15,55 +15,108 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 
-```{r cars}
 
 
-```
 
-
-Introduction: 
-Air pollution has increasingly raised public health concerns, particularly in urban areas where dense traffic emissions may contribute to respiratory diseases such as asthma. Recently, Scotland introduced Low Emission Zones (LEZs) across major cities, including Edinburgh, Glasgow, Dundee and Aberdeen, aimed at reducing harmful emissions to protect both environmental quality and public health. While LEZs are primarily environmental interventions, their potential health impact can be evaluated indirectly by examining patterns in respiratory medication use. This study uses prescribing data from Public Health Scotland (https://www.opendata.nhs.scot/dataset/prescriptions-in-the-community) combined with the most up-to-date version of GP practices codes and locations across Scotland (https://www.opendata.nhs.scot/dataset/f23655c3-6e23-4103-a511-a80d998adb90/resource/47557411-7eda-4278-9d6d-d26ed2ceab5a/download/practice_contact_details_20251001_opendata.csv) to investigate whether and/or how the introduction of LEZs has influenced asthma medication prescribing in the cities where LEZs were implemented by comparing prescription volumes 12 months before and after each city’s LEZ activation date, thereby ensuring temporal consistence of analysis. 
-
-The timing of LEZ implementation differed by city, with Glasgow commencing in 1st June 2023 and those of Edinburgh, Dundee, and Aberdeen becoming operational in 1st June 2024 (https://lowemissionzones.scot/about). Therefore, prescription data were structured around their respective enforcement dates. Data were partitioned into three distinct periods. 
-1. Glasgow-focused period (June 2022-May 2023): capturing 12 months pre-LEZ for Glasgow. 
-2. Four-cities period (June 2023–May 2024): including all four cities during Glasgow's post-LEZ and the others' pre-LEZ phase.
-3. Three-cities period (June 2024–May 2025): covering Edinburgh, Aberdeen, and Dundee post-LEZ, excluding Glasgow.
-
+Research Question: "Is there a relationship between antidepressant prescriptions and SIMD deprivation level in Scotland’s major cities (Glasgow, Edinburgh, Dundee and Aberdeen)?" 
 
 ```{r}
-
-```
-
-
-```{r}
-
+#merge 12 "Data by Prescriber Locations" files (August 2024 - July 2025) into one single file and only keeps columns & drug type (antidepressants) relative to the research question. 
 library(tidyverse)
 library(dplyr)
-library(here)
+
+file_list <- list.files(path = here::here("data"),
+                        pattern = "^2024|2025",
+                        full.names = TRUE)
+
+combined_PrescriberData <- map_dfr(file_list, ~read.csv(.x)  %>%
+                                    select(HBT, GPPractice, BNFItemCode, PaidDateMonth)) %>% 
+                                    filter(str_detect(BNFItemCode, "^04030[1-4]"))
+
+sum(is.na(combined_PrescriberData)) ##for check
+
+#only focus on Edinburgh in aid of the most up-t-date GP Practice Location data (regardless of month because Practice List Sizes are not considered)
+
+GPPractice_location <- read_csv(here::here("data", "GPLocation.csv")) %>% 
+  select(PracticeCode, PracticeListSize, HB, DataZone) 
+ 
+GPPracticeLocation_with_CombinedPrescriber <- combined_PrescriberData %>% 
+  left_join(GPPractice_location, by = c("GPPractice" = "PracticeCode"))
 
 
-#create combined dataset of glasgow only 
-glasgow202206 <- read.csv(here("data","pitc202206.csv"))
-glasgow202207 <- read.csv(here("data","pitc202207.csv"))
-glasgow202208 <- read.csv(here("data","pitc202208.csv"))
-glasgow202209 <- read.csv(here("data","pitc202209.csv"))
-glasgow202210 <- read.csv(here("data","pitc202210.csv"))
-glasgow202211 <- read.csv(here("data","pitc202211.csv"))
-glasgow202212 <- read.csv(here("data","pitc202212.csv"))
-glasgow_combined_batch1 <- bind_rows(glasgow202206, glasgow202207, glasgow202208, glasgow202209, glasgow202210, glasgow202211, glasgow202212)
 
-glasgow202301 <- read.csv(here("data","pitc202301.csv"))
-glasgow202302 <- read.csv(here("data","pitc202302.csv"))
-glasgow202303 <- read.csv(here("data","pitc202303.csv"))
-glasgow202304 <- read.csv(here("data","pitc202304.csv"))
-glasgow202305 <- read.csv(here("data","pitc202305.csv"))
-glasgow_combined_batch2 <- bind_rows(glasgow202301, glasgow202302, glasgow202303, glasgow202304, glasgow202305)
+#combine with SIMD file
+SIMD <- read_csv(here::here("data", "SIMD2020v2.csv")) %>% 
+  select(DataZone, HB, CA, SIMD2020V2Rank, SIMD2020V2CADecile, SIMD2020V2CAQuintile)
 
-glasgow_combined <- bind_rows(glasgow_combined_batch1, glasgow_combined_batch2)
-glasgow <- glasgow_combined %>% select(-ClassOfPreparationCode, -DMDCode, -PrescribedType, -GrossIngredientCost)
-write_csv(glasgow, "glasgow.csv")
+GPPracticeLocation_CombinedPrescriber_SIMD <- GPPracticeLocation_with_CombinedPrescriber %>% 
+  left_join(SIMD, by = c("DataZone" = "DataZone", "HB" = "HB")) %>% 
+   filter(CA %in% c("S12000036", "S12000033", "S12000042", "S12000049"))
 
-#create combined dataset of all 4 cities
+
+#combine with population file
+PopulationEstimates <- read_csv(here::here("data", "PopulationEstimate.csv"))%>% 
+  select(DataZone, Year, Sex, TotalPopulation = AllAges) %>% 
+  filter(Year == 2022, Sex == "All") %>% 
+  select(-Year, -Sex)
+
+GPPracticeLocation_CombinedPrescriber_SIMD_Population <- GPPracticeLocation_CombinedPrescriber_SIMD %>% 
+  left_join(PopulationEstimates, by = c("DataZone" = "DataZone"))
+``` 
+
+
+
+```{r}
+#total antidepressant prescriptions in that DataZone, regardless of which specific BNFItemCode
+Prescription_byDataZone <- GPPracticeLocation_CombinedPrescriber_SIMD_Population %>%
+  group_by(DataZone) %>%
+  summarise(
+    TotalPrescriptions = sum(BNFItemCode),
+    TotalPatients = n_distinct(GPPractice),
+    PrescriptionRate = (TotalPrescriptions / TotalPopulation) * 1000,
+    .groups = "drop"
+  )
+
+
+TotalPrescriptions_byGP <- GPPracticeLocation_CombinedPrescriber_SIMD_Population %>%
+  group_by(GPPractice) %>% ##treat all rows from same GP as one group, every calculation in summarise will happen within each GP separately. 
+  summarise(
+    TotalPrescriptions = n(), across(c(PracticeListSize, SIMD2020V2CADecile, SIMD2020V2CAQuintile, CA), first),
+    PrescriptionRate_byGP = (TotalPrescriptions / PracticeListSize) * 1000,     
+    .groups = "drop"
+  )
+
+summary(TotalPrescriptions_byGP2$PrescriptionRate_byGP)
+summary(TotalPrescriptions_byGP2$PracticeListSize)
+
+
+```
+
+
+```{r}
+
+max(TotalPrescriptions_byGP$PrescriptionRate_byGP, na.rm = TRUE)
+
+library(dplyr)
+TotalPrescriptions_byGP2 <- TotalPrescriptions_byGP %>%
+  mutate(City = case_when(
+    CA == "S12000036" ~ "Edinburgh",
+    CA == "S12000033" ~ "Aberdeen",
+    CA == "S12000042" ~ "Dundee",
+    CA == "S12000049" ~ "Glasgow",
+  ))
+
+ggplot(TotalPrescriptions_byGP2, 
+       aes(x = SIMD2020V2CADecile, y = PrescriptionRate_byGP)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 0.5) +
+  scale_y_log10() +
+  facet_wrap(~ City) +
+  labs(
+    x = "SIMD Decile",
+    y = "Prescription Rate per 1000 (log scale)"
+  ) +
+  theme_minimal()
 
 
 
