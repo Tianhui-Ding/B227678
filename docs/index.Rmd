@@ -1,21 +1,8 @@
 ---
-title: "Assessment"
+title: "Assessment research question: Is there a relationship between antidepressant prescriptions and SIMD deprivation level in Scotland’s major cities (Glasgow, Edinburgh, Dundee and Aberdeen)?"
 output: html_document
 date: "2025-10-31"
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-
-
 
 
 Research Question: "Is there a relationship between antidepressant prescriptions and SIMD deprivation level in Scotland’s major cities (Glasgow, Edinburgh, Dundee and Aberdeen)?" 
@@ -35,8 +22,7 @@ combined_PrescriberData <- map_dfr(file_list, ~read.csv(.x)  %>%
 
 sum(is.na(combined_PrescriberData)) ##for check
 
-#only focus on Edinburgh in aid of the most up-t-date GP Practice Location data (regardless of month because Practice List Sizes are not considered)
-
+#combine with the "GP Practice List and Sizes July 2025" file
 GPPractice_location <- read_csv(here::here("data", "GPLocation.csv")) %>% 
   select(PracticeCode, PracticeListSize, HB, DataZone) 
  
@@ -44,17 +30,16 @@ GPPracticeLocation_with_CombinedPrescriber <- combined_PrescriberData %>%
   left_join(GPPractice_location, by = c("GPPractice" = "PracticeCode"))
 
 
-
-#combine with SIMD file
+#combine with the most up-to-date version of SIMD file (SIMD2020v2)
 SIMD <- read_csv(here::here("data", "SIMD2020v2.csv")) %>% 
   select(DataZone, HB, CA, SIMD2020V2Rank, SIMD2020V2CADecile, SIMD2020V2CAQuintile)
 
 GPPracticeLocation_CombinedPrescriber_SIMD <- GPPracticeLocation_with_CombinedPrescriber %>% 
   left_join(SIMD, by = c("DataZone" = "DataZone", "HB" = "HB")) %>% 
-   filter(CA %in% c("S12000036", "S12000033", "S12000042", "S12000049"))
+   filter(CA %in% c("S12000036", "S12000033", "S12000042", "S12000049")) ##NAs (owing to the temporal mismatch between the datasets, ie.: Data by prescriber location --> collected monthly; GP practice list sizes --> collected seasonally) are automatically excluded by this step. 
 
 
-#combine with population file
+#combine with the most up-to-date "Data Zone (2011) Population Estimates"
 PopulationEstimates <- read_csv(here::here("data", "PopulationEstimate.csv"))%>% 
   select(DataZone, Year, Sex, TotalPopulation = AllAges) %>% 
   filter(Year == 2022, Sex == "All") %>% 
@@ -68,10 +53,12 @@ GPPracticeLocation_CombinedPrescriber_SIMD_Population <- GPPracticeLocation_Comb
 
 ```{r}
 
+#counts how many antidepressant prescriptions each GP practice issued, extracts the practice characteristics that should be the same for all prescriptions from the same practice, and calculates the prescribing rate of antidepressant prescriptions per 1000 patients based on each practice's registered patient population (PracticeListSize). 
+##grouping the data at the GP practice level accounts for considering the fact that patients may live outside the GP practice's local data zone, thereby ensuring prescribing rates more accurately reflect each GP practice's actual workload. 
 TotalPrescriptions_byGP <- GPPracticeLocation_CombinedPrescriber_SIMD_Population %>%
-  group_by(GPPractice) %>% ##treat all rows from same GP as one group, every calculation in summarise will happen within each GP separately. 
+  group_by(GPPractice) %>%  
   summarise(
-    TotalPrescriptions = n(), across(c(PracticeListSize, SIMD2020V2CADecile, SIMD2020V2CAQuintile, CA), first),
+    TotalPrescriptions = n(), across(c(PracticeListSize, SIMD2020V2CADecile, SIMD2020V2CAQuintile, CA, DataZone), first),
     PrescriptionRate_byGP = (TotalPrescriptions / PracticeListSize) * 1000,     
     .groups = "drop"
   )
@@ -84,8 +71,8 @@ summary(TotalPrescriptions_byGP$PracticeListSize)
 
 
 ```{r}
+#data visualisation
 
-library(dplyr)
 TotalPrescriptions_byGP2 <- TotalPrescriptions_byGP %>%
   mutate(City = case_when(
     CA == "S12000036" ~ "Edinburgh",
@@ -94,21 +81,27 @@ TotalPrescriptions_byGP2 <- TotalPrescriptions_byGP %>%
     CA == "S12000049" ~ "Glasgow",
   ))
 
+library(ggplot2)
 ggplot(TotalPrescriptions_byGP2, 
-       aes(x = SIMD2020V2CADecile, y = PrescriptionRate_byGP)) +
-  geom_point(alpha = 0.4) +
-  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 0.5) +
+       aes(x = as.factor(SIMD2020V2CADecile), y = PrescriptionRate_byGP)) +
+  geom_boxplot() +
+  geom_jitter(alpha = 0.3, width = 0.2) +
   scale_y_log10() +
   facet_wrap(~ City) +
   labs(
-    x = "SIMD Decile",
-    y = "Prescription Rate per 1000 (log scale)"
+    x = "SIMD Decile", 
+    y = "Prescription Rate per 1000 people (log scale)"
   ) +
   theme_minimal()
 
-
-
-
-
 ```
+x-axis: represents the level of deprivation for the data zone in which each GP practice is located, relative to other areas within the same council. 
+y-axis: the number of antidepressant prescriptions issued by a GP practice per 1000 of its registered patients, plotted on a log scale. 
+The data are presented in four panels, one for each of Scotland's major cities, which intended to highlight the distribution of prescription rates within each city using boxplot and to enable comparison of deprivation-prescription relationships across cities. 
+Each point represents a single GP practice. 
 
+Next Steps: 
+1. visual analysis.
+2. statistical validation use Spearman correlation test to test the deprivation-prescribing relationship and test the assumptions. + result table 
+3. calculate effect sizes. 
+4. create supporting visualisations such as violin plot to provide a clear sense of density distribution. 
