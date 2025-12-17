@@ -1,107 +1,212 @@
 ---
-title: "Assessment research question: Is there a relationship between antidepressant prescriptions and SIMD deprivation level in Scotland’s major cities (Glasgow, Edinburgh, Dundee and Aberdeen)?"
+title: "Is there a relationship between antidepressant prescriptions and SIMD deprivation level in Scotland’s major cities (Glasgow, Edinburgh, Dundee and Aberdeen)?"
 output: html_document
+toc: true
+toc_float: true
 date: "2025-10-31"
 ---
+## Introduction
+
+*Mental health* is a fundamental determinant of individual and societal well-being, closely intertwined with socioeconomic conditions. Economic pressures, such as living in resource-limited or relatively deprived communities, can potentially exacerbate mental health burdens. Regional disparities in public provision or the high cost of private care may lead individuals to rely primarily on pharmacological interventions rather than psychological therapies, reflecting limited access to specialized mental health services, which is a phenomenon that could be captured by exploring antidepressant prescription rates across different deprivation levels.
 
 
-Research Question: "Is there a relationship between antidepressant prescriptions and SIMD deprivation level in Scotland’s major cities (Glasgow, Edinburgh, Dundee and Aberdeen)?" 
+In this analysis, the **relationship between SIMD deprivation levels and antidepressant prescribing patterns across Scotland's four major cities, Edinburgh, Glasgow, Dundee, and Aberdeen**, is examined by linking **community prescription data by prescriber location from NHS Scotland**, published through the *Scottish Health and Social Care Open Data Service*, with **area-level deprivation scores** from the *Scottish Index of Multiple Deprivation (SIMD)*, and aming to provide insights into how mental health reflects and shapes socioeconomic and healthcare inequalities. 
 
-```{r}
-#merge 12 "Data by Prescriber Locations" files (August 2024 - July 2025) into one single file and only keeps columns & drug type (antidepressants) relative to the research question. 
+
+
+## Methods
+
+This analysis followed a sequential workflow comprising
+1. Data acquisition
+2. Data wrangling and tidying
+3. Exploratory data analysis
+4. Statistical modelling
+5. Results presentation
+Firstly, prescription data from August 2023 to July 2025 were imported and filtered to include antidepressant medications based on British National Formulary (BNF) codes. The data were then combined into a single dataset containing relevant variables and adjusted to account for seasonal variation and minimize short-term monthly fluctuations, thereby enhancing the robustness of the findings. Followingly, data wrangling and integration were performed to combine prescription records with geographic and socioeconomic context. *Prescription data* were linked to GP practice–level *geographic information* using GP practice codes and merged with *deprivation measures* at the data-zone level for Scotland’s four major cities. In the *combined* dataset, some data zones do not contain a physical GP practice because SIMD data zones are designed to represent approximate population sizes (~500-1000 people per data zone) rather than the location of healthcare services. Therefore, the combined dataset was filtered to retain only observations with a valid GP practice identifier (GPPractice). Subsequently, the most up-to-date *population estimates (2022)* at the data zone level were incorporated to calculate population-standardised prescription rates, which were then aggregated by data zone and grouped by region and SIMD country-level quintile. The antidepressant prescribing rates were calculated as prescriptions per 1,000 population per year, accounting for the two-year study period. Subsequently, statistical analysis was undertaken using linear regression to examine the reltionship between SIMD deprivation level and antidepressant prescribing rates, with city included as a factor and interaction terms used to assess whether deprivation–prescribing relationships differed by city. Estimated marginal means (EMMs) were computed to summarise adjusted prescribing rates across deprivation quintiles, and pairwise comparisons were used to evaluate differences between SIMD levels. Finally, results were visualized using column plots with confidence intervals to illustrate differences in antidepressant prescribing across deprivation levels, and a formatted summary table was generated to quantitatively support the visual representation. 
+
+
+
+## Results
+
+Visual inspection of boxplots derived from the raw data suggests a general tendency for antidepressant prescribing rates to decline with decreasing levels of deprivation, although this pattern is not consistently observed across all cities. To further test this, a general linear model was employed to estimate the overall effects of deprivation on antidepressant prescribing rates, including potential interactions between deprivation and city. By examining the model coefficients, the analysis investigates variation between groups by comparing each SIMD quintile to the reference quintile within each city, in order to assess how prescription differences between SIMD quintiles vary across cities. At the macroscopic level, the model evaluates whether deprivation, city, or their interaction exert an overall effect on antidepressant prescribing rates across all cities, using ANOVA derived from the fitted model. The null hypotheses are assumed that
+1) The antidepressant prescribing rates are equal across SIMD deprivation levels in Scotland's major cities. 
+2) The antidepressant prescribing rates are the same between cities. 
+3) There is no significant interaction between SIMD quintile and city. 
+
+
+The 2-way ANOVA GLM provides a strong evidence that antidepressant prescribing rates significantly differs across SIMD deprivation levels (F = 7.8311, df = 4, p = 8.710e^{-06}) and between the 4 major cities (F = 22.5658, df = 3, p = 3.173e^{-12}). Contrarily, the pattern of change across SIMD quintiles is considered roughly similar in all cities (F = 1.2168, df = 12, p = 0.2758), although the overall prescribing rates can still be higher or lower in one city compared to another. Specifically, the highest antidepressant prescribing rates were observed in the most deprived areas (SIMD quintile 1; mean ± SE: 25496 ± 2430; 95% CI: 20697, 30295), whereas the lowest rates were found in the least deprived areas (SIMD quintile 5; mean ± SE: 11905 ± 3090; 95% CI: 5807, 18003). Although a general decreasing socioeconomic gradient might be expected, prescribing rates in the middle deprivation quintiles are not proportional to each other, where areas in quintile 4 possesses higher prescription rates (mean ± SE:22771 ± 3690; 95% CI: 15475, 30067), compared to areas in quintile 2 (mean ± SE:17534 ± 2440; 95% CI: 12706, 22362) and quintile 3 (mean ± SE: 15668 ± 2070; 11576, 19761). 
+
+
+## Discussion & Conclusion
+This analysis highlights a close link between socioeconomic deprivation and mental health treatment burden. Prescribing rates for antidepressants varied across deprivation levels and between cities, pointing to the influence of socioeconomic inequalities on mental health. These differences may also reflect variation in socioeconomic capacity as well as underlying variability in population mental health status. Although prescribing rates differed between cities, the overall pattern across SIMD deprivation quintiles was broadly similar, which may be attributed to variability within specific SIMD quintiles, including the presence of outliers, uneven distributions of data zones across deprivation levels, or wider interquartile ranges within certain cities at specific SIMD quintile levels. 
+Taken together, these findings support the conclusion that SIMD deprivation level contributes to mental health burden. However, as deprivation captures multiple dimensions of reduced quality of life, such as income, employment, education, and health, future research could explore whether higher prescribing rates in more deprived areas primarily reflect a greater prevalence of mental health conditions, or whether they indicate increased reliance on pharmacological treatment due to limited access to non-pharmacological mental health support. Differences in antidepressant prescribing may therefore signal inequalities not only in mental health burden, but also in the availability and type of mental health care across socioeconomic contexts. 
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, fig.show='hold', code_download = TRUE)
+
+knitr::opts_chunk$set(fig.width = 10, fig.height = 8)
+
 library(tidyverse)
-library(dplyr)
-
-file_list <- list.files(path = here::here("data"),
-                        pattern = "^2024|2025",
-                        full.names = TRUE)
-
-combined_PrescriberData <- map_dfr(file_list, ~read.csv(.x)  %>%
-                                    select(HBT, GPPractice, BNFItemCode, PaidDateMonth)) %>% 
-                                    filter(str_detect(BNFItemCode, "^04030[1-4]"))
-
-sum(is.na(combined_PrescriberData)) ##for check
-
-#combine with the "GP Practice List and Sizes July 2025" file
-GPPractice_location <- read_csv(here::here("data", "GPLocation.csv")) %>% 
-  select(PracticeCode, PracticeListSize, HB, DataZone) 
- 
-GPPracticeLocation_with_CombinedPrescriber <- combined_PrescriberData %>% 
-  left_join(GPPractice_location, by = c("GPPractice" = "PracticeCode"))
-
-
-#combine with the most up-to-date version of SIMD file (SIMD2020v2)
-SIMD <- read_csv(here::here("data", "SIMD2020v2.csv")) %>% 
-  select(DataZone, HB, CA, SIMD2020V2Rank, SIMD2020V2CADecile, SIMD2020V2CAQuintile)
-
-GPPracticeLocation_CombinedPrescriber_SIMD <- GPPracticeLocation_with_CombinedPrescriber %>% 
-  left_join(SIMD, by = c("DataZone" = "DataZone", "HB" = "HB")) %>% 
-   filter(CA %in% c("S12000036", "S12000033", "S12000042", "S12000049")) ##NAs (owing to the temporal mismatch between the datasets, ie.: Data by prescriber location --> collected monthly; GP practice list sizes --> collected seasonally) are automatically excluded by this step. 
-
-
-#combine with the most up-to-date "Data Zone (2011) Population Estimates"
-PopulationEstimates <- read_csv(here::here("data", "PopulationEstimate.csv"))%>% 
-  select(DataZone, Year, Sex, TotalPopulation = AllAges) %>% 
-  filter(Year == 2022, Sex == "All") %>% 
-  select(-Year, -Sex)
-
-GPPracticeLocation_CombinedPrescriber_SIMD_Population <- GPPracticeLocation_CombinedPrescriber_SIMD %>% 
-  left_join(PopulationEstimates, by = c("DataZone" = "DataZone"))
-``` 
-
-
-
-```{r}
-
-#counts how many antidepressant prescriptions each GP practice issued, extracts the practice characteristics that should be the same for all prescriptions from the same practice, and calculates the prescribing rate of antidepressant prescriptions per 1000 patients based on each practice's registered patient population (PracticeListSize). 
-##grouping the data at the GP practice level accounts for considering the fact that patients may live outside the GP practice's local data zone, thereby ensuring prescribing rates more accurately reflect each GP practice's actual workload. 
-TotalPrescriptions_byGP <- GPPracticeLocation_CombinedPrescriber_SIMD_Population %>%
-  group_by(GPPractice) %>%  
-  summarise(
-    TotalPrescriptions = n(), across(c(PracticeListSize, SIMD2020V2CADecile, SIMD2020V2CAQuintile, CA, DataZone), first),
-    PrescriptionRate_byGP = (TotalPrescriptions / PracticeListSize) * 1000,     
-    .groups = "drop"
-  )
-
-summary(TotalPrescriptions_byGP$PrescriptionRate_byGP)
-summary(TotalPrescriptions_byGP$PracticeListSize)
-
-
-```
-
-
-```{r}
-#data visualisation
-
-TotalPrescriptions_byGP2 <- TotalPrescriptions_byGP %>%
-  mutate(City = case_when(
-    CA == "S12000036" ~ "Edinburgh",
-    CA == "S12000033" ~ "Aberdeen",
-    CA == "S12000042" ~ "Dundee",
-    CA == "S12000049" ~ "Glasgow",
-  ))
-
+library(here)
 library(ggplot2)
-ggplot(TotalPrescriptions_byGP2, 
-       aes(x = as.factor(SIMD2020V2CADecile), y = PrescriptionRate_byGP)) +
-  geom_boxplot() +
-  geom_jitter(alpha = 0.3, width = 0.2) +
-  scale_y_log10() +
-  facet_wrap(~ City) +
-  labs(
-    x = "SIMD Decile", 
-    y = "Prescription Rate per 1000 people (log scale)"
-  ) +
-  theme_minimal()
+
+library(emmeans)
+library(gt)
+```
+
+
+```{r}
+links <- read_csv(here("file_links.csv")) %>% 
+  select(link) %>% 
+  pull()
+
+joined_data_24 <- links %>% 
+  map(~ read_csv (.x) %>% 
+        select(GPPractice, BNFItemCode, NumberOfPaidItems, PaidDateMonth) %>% 
+        filter(str_detect(BNFItemCode, "^04030[1-4]"))) %>% 
+  list_rbind()
+```
+
+
+```{r}
+GeoInfo <- read_csv(here("data", "GPPracticesOct.csv")) %>%  
+  select(PracticeCode, PracticeListSize, DataZone, GPCluster)
+
+GeoInfo_24 <- joined_data_24 %>% 
+  left_join(GeoInfo, by = c("GPPractice" = "PracticeCode"))
+
+SIMD <- read_csv(here("data", "SIMD2020v2.csv")) %>% 
+  select(DataZone, CA, SIMD2020V2Rank, SIMD2020V2CountryQuintile, SIMD2020V2CAQuintile) 
+
+CA <- read_csv(here("data", "CAarea.csv")) %>% 
+  select(CA, CAName) %>% 
+  filter(str_to_lower(CAName) %in% str_to_lower(c("city of Edinburgh", "Aberdeen city", "Glasgow city", "Dundee city")))
+
+SIMD_CA <- left_join(CA, SIMD, by = c("CA" = "CA"))
+
+Combined_data <- left_join(SIMD_CA, GeoInfo_24, by = c("DataZone" = "DataZone"))
+
+Combined_data %>% 
+  filter(is.na(GPPractice)) %>%
+  select(DataZone) %>%
+  distinct()
+
+Combined_data_clean <- Combined_data %>% 
+  filter(!is.na(GPPractice))
+
+Population <- read_csv(here("data", "DataZonePopulationEstimate2021.csv")) %>% 
+  filter(Sex == "All", Year == "2022") %>% 
+  select(DataZone, TotalPopulation = AllAges)
+
+Final_data <- Combined_data_clean %>% 
+  left_join(Population, by = c("DataZone" = "DataZone"))
 
 ```
-x-axis: represents the level of deprivation for the data zone in which each GP practice is located, relative to other areas within the same council. 
-y-axis: the number of antidepressant prescriptions issued by a GP practice per 1000 of its registered patients, plotted on a log scale. 
-The data are presented in four panels, one for each of Scotland's major cities, which intended to highlight the distribution of prescription rates within each city using boxplot and to enable comparison of deprivation-prescription relationships across cities. 
-Each point represents a single GP practice. 
 
-Next Steps: 
-1. visual analysis.
-2. statistical validation use Spearman correlation test to test the deprivation-prescribing relationship and test the assumptions. + result table 
-3. calculate effect sizes. 
-4. create supporting visualisations such as violin plot to provide a clear sense of density distribution. 
+
+```{r}
+analysis_data <- Final_data %>% 
+  group_by(CAName, SIMD2020V2CountryQuintile, DataZone) %>% 
+  summarise(total_prescriptions = sum(NumberOfPaidItems, na.rm = TRUE), 
+    population = first(TotalPopulation),
+    .groups = "drop") %>% 
+  mutate(prescriptions_per1000_perYear = ((total_prescriptions / population) * 1000) / 2) %>% 
+  filter(!is.na(DataZone)) 
+
+mean_data <- analysis_data %>% 
+  group_by(CAName, SIMD2020V2CountryQuintile) %>% 
+  summarise(mean_rate = mean(prescriptions_per1000_perYear, na.rm = TRUE))
+```
+
+
+```{r}
+ggplot(analysis_data, 
+       aes(x = factor(SIMD2020V2CountryQuintile), y = prescriptions_per1000_perYear, fill = factor(SIMD2020V2CountryQuintile))) +
+  geom_boxplot(alpha = 0.8) + 
+  geom_jitter(width = 0.2, alpha = 0.3) +  
+  facet_wrap(~ CAName) +                           
+  scale_fill_manual(values= c("1" = "red", "2" = "orange", "3" = "khaki2",
+                              "4" = "yellowgreen", "5" = "limegreen"),
+                    guide = "none") +
+  labs(x = "SIMD Quintile (1 = most deprived)",
+       y = "Antidepressant prescriptions per 1,000 people per year", 
+       title = "Distribution of prescriptions by SIMD quintile and city") +
+  theme_bw() +
+  theme(axis.line = element_line(size = 0.6, colour = "black"),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r, fig.show="hide", echo=TRUE}
+stat_lm <- lm(prescriptions_per1000_perYear ~ factor(SIMD2020V2CountryQuintile) * CAName, data = analysis_data)
+plot(stat_lm)
+summary(stat_lm) 
+anova(stat_lm) 
+
+stat_emm <- emmeans(stat_lm, ~SIMD2020V2CountryQuintile)
+stat_emm
+```
+
+
+```{r}
+stat_emm_plot <- as.data.frame(stat_emm)
+
+ggplot(stat_emm_plot, aes(x = factor(SIMD2020V2CountryQuintile), y = emmean, fill = factor(SIMD2020V2CountryQuintile))) +
+  geom_col(width = 0.7) +  
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2, color = "black") +
+  geom_point(size = 3, color = "darkred") +
+  scale_fill_manual(
+    values = c("1" = "red", "2" = "orange", "3" = "khaki2", "4" = "yellowgreen", "5" = "limegreen"), guide = "none") +
+  labs(title = "Antidepressant Prescriptions by SIMD Quintile", 
+       x = "SIMD Quintile (1 = Most Deprived)", 
+       y = "Estimated Marginal Mean (Prescription rate across cities)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+gt_table <- stat_emm_plot %>% 
+  gt() %>% 
+  tab_header(title = "Estimated Marginal Means of Antidepressant Prescriptions by SIMD Quintile across 4 Major Cities", 
+             subtitle = "Data obtained from Public Health Scotland") %>% 
+  cols_label(SIMD2020V2CountryQuintile = "SIMD Quintile (Country-level)", emmean = "Emmeans", SE = "Standard Error", df = "Degree of Freedom", lower.CL = "Lower 95% CI", upper.CL = "Upper 95% CI") %>%
+  cols_align(align = "center", columns = everything()) %>% 
+  fmt_number(columns = vars(emmean, SE, lower.CL, upper.CL), decimals = 1) %>% 
+  tab_style(style = cell_fill(color = "lightgrey"), locations = cells_column_labels(everything())) %>% 
+  tab_source_note(source_note = "N.B. Estimated marginal means (emmeans) calculated as prescription rate per 1,000 population per year, averaged across cities.")
+gt_table
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
