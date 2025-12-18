@@ -52,7 +52,7 @@ joined_data_24 <- links %>%
 ```
 
 
-```{r}
+```{r, echo=TRUE, results="hide"}
 GeoInfo <- read_csv(here("data", "GPPracticesOct.csv")) %>%  
   select(PracticeCode, PracticeListSize, DataZone, GPCluster)
 
