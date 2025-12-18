@@ -156,8 +156,7 @@ ggplot(stat_emm_plot, aes(x = factor(SIMD2020V2CountryQuintile), y = emmean, fil
 ```{r}
 gt_table <- stat_emm_plot %>% 
   gt() %>% 
-  tab_header(title = "Estimated Marginal Means of Antidepressant Prescriptions by SIMD Quintile across 4 Major Cities", 
-             subtitle = "Data obtained from Public Health Scotland") %>% 
+  tab_header(title = "Estimated Marginal Means of Antidepressant Prescriptions by SIMD Quintile across 4 Major Cities", subtitle = "Data obtained from Public Health Scotland") %>%
   cols_label(SIMD2020V2CountryQuintile = "SIMD Quintile (Country-level)", emmean = "Emmeans", SE = "Standard Error", df = "Degree of Freedom", lower.CL = "Lower 95% CI", upper.CL = "Upper 95% CI") %>%
   cols_align(align = "center", columns = everything()) %>% 
   fmt_number(columns = vars(emmean, SE, lower.CL, upper.CL), decimals = 1) %>% 
